@@ -6,9 +6,17 @@ SERV_IP = '127.0.0.1'
 SERV_PORT = 5050
 
 
-def send_message(psocket, args):
+def send_message(msg, ip, port):
     # print("sending..", args[1])
-    psocket.send(args[1].encode())
+    psocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    psocket.connect((ip, int(port)))
+    reply = psocket.recv(4096)
+    # print(reply.decode())
+    # print(msg)
+    psocket.send(msg.encode())
+    psocket.close()
+    return
 
 
 def start_server(ip, port):

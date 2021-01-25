@@ -2,6 +2,8 @@ import socket
 import threading
 import sys
 
+peer_info = {'peer1':['127.0.0.1', '5051'], 'peer2':['127.0.0.1', '5052']}
+
 
 class Server:
     # IP = socket.gethostbyname(socket.gethostname())
@@ -15,11 +17,18 @@ class Server:
     def handle_connection(self, client_socket, client_address):
         while True:
             data = client_socket.recv(4096)
-            msg = "< {} : {} > :~ ".format(client_address[0], client_address[1]) + data.decode()
+            tokens = data.decode().split(":")
+            # TODO: Error handling
+            if tokens[0] == "send":
+                pip, pport = peer_info[tokens[1]]
+                msg = f"{pip}:{pport}".encode()
+                client_socket.send(msg)
+
+            # msg = "{}:{}:~ ".format(client_address[0], client_address[1]) + data.decode()
             # print("sending..",msg)
-            for client in self.connections:
-                if client != client_socket:
-                    client.send(msg.encode())
+            # for client in self.connections:
+            #     if client != client_socket:
+            #         client.send(msg.encode())
 
             if not data:
                 print("{}:{} disconnected.....".format(client_address[0], client_address[1]))
