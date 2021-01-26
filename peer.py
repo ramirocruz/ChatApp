@@ -26,16 +26,40 @@ class Client:
             c.send("Success".encode())
 
             msg = c.recv(4096)
-            msg = msg.decode()
+            type, msg = msg.decode().split(":")
             print(msg)
 
+            if type == "file":
+                filename = msg.split(">>")[1].strip()
+                with open(filename, 'wb') as f:
+                    while True:
+                        # print('receiving data...')
+                        data = c.recv(1024)
+                        if not data:
+                            break
+
+                        f.write(data)
+
             c.close()
+
+    def print_cmds(self):
+        cmds = ["SEND <username/groupname> <message>", "SEND <username/groupname> FILE <filepath>",
+                "LIST: lists all active chats", "JOIN <groupname>: join or create a group",
+                "CREATE <groupname>: create a group"]
+
+        print("****** COMMANDS *******")
+        for cmd in cmds:
+            print(cmd)
+
+        print("***********************\n")
+
 
     def run(self, ip, port):
         th = threading.Thread(target=self.start_server, args=(ip, port,))
         th.daemon
         th.start()
 
+        self.print_cmds()
         while True:
             tokens = input().split()
             # print(tokens)
@@ -44,7 +68,7 @@ class Client:
                 args = tokens[1:]
 
             # TODO: Error handling
-            if cmd == 'SEND':
+            if cmd.lower() == 'send':
                 if len(args) < 2:
                     print(f"ERROR: expected 2 or more arguments, got {len(args)}")
                 else:
@@ -54,7 +78,7 @@ class Client:
                     reply = self.client_socket.recv(4096).decode()
                     ip, port = reply.split(":")
                     # print(ip, port)
-                    send_message(args[1], ip, port)
+                    send_message(args, ip, port)
 
 
         th.join()

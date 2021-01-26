@@ -6,15 +6,34 @@ SERV_IP = '127.0.0.1'
 SERV_PORT = 5050
 
 
-def send_message(msg, ip, port):
+def send_message(args, ip, port):
     # print("sending..", args[1])
     psocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     psocket.connect((ip, int(port)))
     reply = psocket.recv(4096)
-    # print(reply.decode())
-    # print(msg)
-    psocket.send(msg.encode())
+    username = args[0]
+    # TODO: Add encryption
+    if args[1].lower() == 'file':
+        filepath = args[2]
+        filename = filepath.split('\\')[-1]
+        msg = f"file:{username} >> {filename}"
+        psocket.send(msg.encode())
+
+        try:
+             with open(filepath, 'rb') as f:
+                l = f.read(4096)
+                while(l):
+                    psocket.send(l)
+                    l = f.read(4096)
+
+        except FileNotFoundError as e:
+            print("ERROR:", e)
+            print("\n\n")
+    else:
+        msg = f"message:{username} >> {args[1]}"
+        psocket.send(msg.encode())
+
     psocket.close()
     return
 
