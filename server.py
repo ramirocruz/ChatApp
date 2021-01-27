@@ -65,21 +65,50 @@ class Server:
                     peer_details.socket.send('invalid command'.encode())
 
             elif command=='send':
-                if tokens[1].lower()=='file':
-                    
-                else:
-                    if peer_details.isloggedin:
-                        if tokens[1] in connected_peers:
-                            if connected_peers[tokens[1]].isloggedin:
-                                message='send '+connected_peers[tokens[1]].ip+':'+str(connected_peers[tokens[1]].port)
-                                peer_details.socket.send(message.encode())
-                            else:
-                                peer_details.socket.send((tokens[1]+' is not logged in.').encode())
+                if peer_details.isloggedin:
+                    if tokens[1] in connected_peers:
+                        if connected_peers[tokens[1]].isloggedin:
+                            message='send '+connected_peers[tokens[1]].ip+':'+str(connected_peers[tokens[1]].port)
+                            peer_details.socket.send(message.encode())
                         else:
-                            peer_details.socket.send(('User '+tokens[1]+' does not exist.').encode())   
-                    else:                
-                        peer_details.socket.send('you need to log in first'.encode())    
+                            peer_details.socket.send((tokens[1]+' is not logged in.').encode())
+                    else:
+                        peer_details.socket.send(('User '+tokens[1]+' does not exist.').encode())   
+                else:                
+                    peer_details.socket.send('you need to log in first'.encode())    
+
+            elif command=='send_file':
+                if peer_details.isloggedin:
+                    if tokens[1] in connected_peers:
+                        if connected_peers[tokens[1]].isloggedin:
+                            message='send_file '+connected_peers[tokens[1]].ip+':'+str(connected_peers[tokens[1]].port)
+                            peer_details.socket.send(message.encode())
+                        else:
+                            peer_details.socket.send((tokens[1]+' is not logged in.').encode())
+                    else:
+                        peer_details.socket.send(('User '+tokens[1]+' does not exist.').encode()) 
+                else:
+                    peer_details.socket.send('you need to log in first'.encode())    
             
+            elif command=='group_send_file':
+                if peer_details.isloggedin:
+                    groupname=tokens[1]
+                    if groupname in groups:
+                        if peer_details in groups[groupname].members:
+                            reply='group_send_file '
+                            for i in groups[groupname].members:
+                                if i!=peer_details:                      
+                                    reply+=(i.ip+':'+str(i.port)+';')
+                            reply+=('<'+groupname+'>')
+                            peer_details.socket.send(reply.encode())
+                        else:
+                            peer_details.socket.send('You are not a member of this group'.encode())
+                    else:
+                        peer_details.socket.send('group name does not exist'.encode())
+                else:
+                    peer_details.socket.send('you need to log in first'.encode())   
+                            
+
             elif command=='group_send':
                 if peer_details.isloggedin:
                     groupname=tokens[1]

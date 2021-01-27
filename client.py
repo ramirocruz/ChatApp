@@ -14,6 +14,7 @@ class Client:
         self.server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.text=''
         self.user_name=''
+        self.filepath=''
         # self.server_socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 
     def senddata(self):
@@ -21,15 +22,15 @@ class Client:
         while True:
             inp=input()
             tokens=inp.split()
-            if tokens[0]=='send':
-                # if tokens[1]!='file':
+            if tokens[0]=='send_file':
+                self.client_socket.send((tokens[0]+' '+tokens[1]).encode())
+                self.filepath=tokens[2]
+            elif tokens[0]=='send':
                 self.client_socket.send((tokens[0]+' '+tokens[1]).encode())
                 self.text=inp.split(' ',2)[2]
-                # else:
-                #     self.client_socket.send((tokens[0]+' '+tokens[2]).encode())
-                    # self.text=inp.split(' ',2)[2]
-            elif tokens[0]=='send_file':
-                pass            
+            elif tokens[0]=='group_send_file':
+                self.client_socket.send((tokens[0]+' '+tokens[1]).encode())
+                self.filepath=tokens[2]
             elif tokens[0]=='group_send':
                 self.client_socket.send((tokens[0]+' '+tokens[1]).encode())
                 self.text=inp.split(' ',2)[2]
@@ -45,6 +46,16 @@ class Client:
             if not data:
                 break
             print(data.decode())
+            if 'sent a file' in data.decode():
+                filename=client_socket.recv(4096).decode()
+                with open(filename, 'wb') as f:
+                    while True:
+                        # print('receiving data...')
+                        if not data:
+                            break
+                        data = client_socket.recv(1024)
+                        f.write(data)
+
             
 
     def server(self):
@@ -69,7 +80,26 @@ class Client:
             data = self.client_socket.recv(4096)
             if not data:
                 break
-            if data.decode()[:4].lower()=='send':
+            if data.decode()[:9]=='send_file':
+                ip,port=data.decode()[10:].split(':')
+                p2psocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+                print(ip)
+                print(port)
+                p2psocket.connect((ip,int(port)))
+                p2psocket.send((self.user_name+' : sent a file').encode())
+                filename = self.filepath.split('/')[-1]
+                p2psocket.send(filename.encode())
+                
+                try:
+                    with open(self.filepath, 'rb') as f:
+                        l = f.read(4096)
+                        while(l):
+                            p2psocket.send(l)
+                            l = f.read(4096)
+                except FileNotFoundError as e:
+                    print("ERROR:", e)
+
+            elif data.decode()[:4].lower()=='send':
                 ip,port=data.decode()[5:].split(':')
                 p2psocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                 p2psocket.connect((ip,int(port)))
@@ -78,6 +108,30 @@ class Client:
                 # print(ip)
                 # print(port)
                 # print(message)
+            elif data.decode()[:15]=='group_send_file':
+                data=data.decode()[16:]
+                members=data.split(';')[:-1]
+                groupname=data.split(';')[-1]
+                for i in members:
+                    ip,port=i.split(':')
+                    p2psocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+                    # print(ip)
+                    # print(port)
+                    p2psocket.connect((ip,int(port)))
+                    p2psocket.send((self.user_name+' '+groupname+' : sent a file').encode())
+                    filename = self.filepath.split('/')[-1]
+                    # print(filename)
+                    # print(self.filepath)
+                    p2psocket.send(filename.encode())
+                    try:
+                        with open(self.filepath, 'rb') as f:
+                            l = f.read(4096)
+                            while(l):
+                                p2psocket.send(l)
+                                l = f.read(4096)
+                    except FileNotFoundError as e:
+                        print("ERROR:", e)
+                    p2psocket.close()
             elif data.decode()[:10].lower()=='group_send':
                 data=data.decode()[11:]
                 members=data.split(';')[:-1]
@@ -85,9 +139,14 @@ class Client:
                 for i in members:
                     ip,port=i.split(':')
                     p2psocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+                    print(ip)
+                    print(port)
                     p2psocket.connect((ip,int(port)))
                     p2psocket.send((self.user_name+' '+groupname+' : '+self.text).encode())
                     p2psocket.close()
+            
+
+            
             elif data.decode()[:4].lower()=='list_groups':
                 print(data.decode()[5:])
             else:
