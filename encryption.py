@@ -21,11 +21,14 @@ class Encryption:
 
     def encrypt(self,plain_text):
         pad = 8 - len(plain_text)%8
+        pad = pad%8
         plain_text = plain_text + b' '*pad
         des3 = DES3.new(self.key,DES3.MODE_ECB)
-        return des3.encrypt(plain_text)
+        cipher = des3.encrypt(plain_text)
+        return cipher
     
     def decrypt(self,cipher_text):
         des3 = DES3.new(self.key,DES3.MODE_ECB)
-        cipher =  des3.decrypt(cipher_text)
-        return cipher.decode().strip().encode()
+        cipher = des3.decrypt(cipher_text)
+        # cipher = cipher.decode().strip().encode()
+        return cipher
