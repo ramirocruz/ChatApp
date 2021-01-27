@@ -18,12 +18,14 @@ class Encryption:
     
     def __init__(self,key):
         self.key = bytearray.fromhex(hashlib.sha256(str(key).encode()).hexdigest()[:48])
-        self.iv = Random.new().read(DES3.block_size)
 
     def encrypt(self,plain_text):
-        des3 = DES3.new(self.key,DES3.MODE_EAX,self.iv)
+        pad = 8 - len(plain_text)%8
+        plain_text = plain_text + b' '*pad
+        des3 = DES3.new(self.key,DES3.MODE_ECB)
         return des3.encrypt(plain_text)
     
     def decrypt(self,cipher_text):
-        des3 = DES3.new(self.key,DES3.MODE_EAX,self.iv)
-        return des3.decrypt(cipher_text)
+        des3 = DES3.new(self.key,DES3.MODE_ECB)
+        cipher =  des3.decrypt(cipher_text)
+        return cipher.decode().strip().encode()
