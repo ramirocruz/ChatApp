@@ -5,8 +5,8 @@
 
 
 ## Running Instructions:
-* For Server : python3 server.py < --- /PORT NO.>
-* For Client : python3 client.py  <SERVER IP> <SERVER PORT> <IP> <PORT NO.>
+* For Server : python3 server.py< --- /PORT NO.>
+* For Client : python3 client.py<SERVER IP> <SERVER PORT> <IP> <PORT NO.>
 
 ## COMMANDS
 * create_user   <username>   <password>   ------> Creates a new user
