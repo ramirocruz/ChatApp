@@ -1,6 +1,7 @@
 import socket
 import sys
 from threading import Thread
+from encryption import Encryption, GenerateKey
 
 SERV_IP = '127.0.0.1'
 SERV_PORT = 5050
@@ -11,20 +12,29 @@ def send_message(args, ip, port):
     psocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     psocket.connect((ip, int(port)))
-    reply = psocket.recv(4096)
     username = args[0]
+
+    key = GenerateKey(username)     #TODO: pass Roll no
+
+    psocket.send(str(key.hashkey).encode())
+
+    recvr_hash = int(psocket.recv(4096).decode())
+    # print(recvr_hash)
+    key.gen_key(recvr_hash)
+    en = Encryption(key.finalkey)
+
     # TODO: Add encryption
     if args[1].lower() == 'file':
         filepath = args[2]
         filename = filepath.split('\\')[-1]
         msg = f"file:{username} >> {filename}"
-        psocket.send(msg.encode())
+        psocket.send(en.encrypt(msg.encode()))
 
         try:
              with open(filepath, 'rb') as f:
                 l = f.read(4096)
                 while(l):
-                    psocket.send(l)
+                    psocket.send(en.encrypt(l))
                     l = f.read(4096)
 
         except FileNotFoundError as e:

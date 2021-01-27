@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 from message import send_message
+from encryption import Encryption, GenerateKey
 
 
 SERV_IP = '127.0.0.1'
@@ -9,10 +10,11 @@ SERV_PORT = 5050
 
 
 class Client:
-    def __init__(self, s_addr, s_port):
+    def __init__(self, s_addr, s_port, username):
         # Connecting to server
         self.client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.client_socket.connect((s_addr, s_port))
+        self.username = username
 
     def start_server(self, ip, port):
         ssocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,9 +25,17 @@ class Client:
         # print("server ready..")
         while True:
             c, addr = ssocket.accept()
-            c.send("Success".encode())
 
-            msg = c.recv(4096)
+            sender_hash = int(c.recv(4096).decode())
+
+            key = GenerateKey(self.username)
+
+            c.send(str(key.hashkey).encode())
+            key.gen_key(sender_hash)
+            de = Encryption(key.finalkey)
+
+            cipher = c.recv(4096)
+            msg = de.decrypt(cipher).decode()
             type, msg = msg.decode().split(":")
             print(msg)
 
@@ -34,7 +44,7 @@ class Client:
                 with open(filename, 'wb') as f:
                     while True:
                         # print('receiving data...')
-                        data = c.recv(1024)
+                        data = de.decrypt(c.recv(1024))
                         if not data:
                             break
 
@@ -86,7 +96,8 @@ class Client:
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
-        client = Client(SERV_IP, SERV_PORT)
+        username = input()
+        client = Client(SERV_IP, SERV_PORT, username)
         client.run(sys.argv[1], int(sys.argv[2]))
     else:
         print(f"ERROR: Expected 3 arguments, got {len(sys.argv)}")
