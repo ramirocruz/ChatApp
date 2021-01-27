@@ -6,11 +6,11 @@
 
 ## Running Instructions:
 * For Server : python3 server.py < --- /PORT NO.>
-* For Client : python3 client.py <SERVER IP> <SERVER PORT> <IP> <PORT NO.>
+* For Client : python3 client.py  <SERVER IP> <SERVER PORT> <IP> <PORT NO.>
 
 ## COMMANDS
-* create_user   <username>   <password>   ------> CREATES A NEW-USER
-* login <username> <password> -------> LOGS IN A USER
+* create_user   <username>   <password>   ------> Creates a new user
+* login <username> <password> -------> Logs in a user
 * send <username> <message>   -------> sends message to the specified user
 * send_file <username> <filepath>   -------> sends file to the specified user
 * create_group <groupname>                --------> creates group with the specified name
