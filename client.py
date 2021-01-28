@@ -41,8 +41,7 @@ class Client:
                 self.client_socket.send(inp.encode())
 
     def handle_connection(self,client_socket,client_address):
-        DH = GenerateKey(self.rollnumber)        
-        print(self.rollnumber)
+        DH = GenerateKey(self.rollnumber)
         peerhash = int(client_socket.recv(4096).decode())
         client_socket.send(str(DH.hashkey).encode())
         DH.gen_key(peerhash)
@@ -128,7 +127,6 @@ class Client:
                 ip,port=data.decode()[5:].split(':')
                 p2psocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                 p2psocket.connect((ip,int(port)))
-                print(self.rollnumber)
                 DH = GenerateKey(self.rollnumber)        
                 p2psocket.send(str(DH.hashkey).encode())
                 peerhash = int(p2psocket.recv(4096).decode())
