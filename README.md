@@ -1,12 +1,6 @@
 # SNS ASSIGNMENT 1
 ## An end to end messaging system like WhatsApp
 
-### List of Members:
-* Mohit Manwani `(2020201094)`
-* Raman Shukla  `(2020201098)`
-* Sailee Shingane `(2020201004)`
-* Sushant Singh `(2020201003)`
-
 
 ## Running Instructions:
 * For Server : python3 server.py< --- /PORT NO.>
